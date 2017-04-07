@@ -6,7 +6,11 @@
 //  Copyright © 2016 Segment. All rights reserved.
 //
 
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#else 
+#import <AppKit/AppKit.h>
+#endif
 #import <objc/runtime.h>
 #import "SEGAnalyticsUtils.h"
 #import "SEGAnalytics.h"
@@ -113,6 +117,7 @@ static NSString *const kSEGAnonymousIdFilename = @"segment.anonymousId";
     SEGLog(@"Application state change notification: %@", notificationName);
     static NSDictionary *selectorMapping;
     static dispatch_once_t selectorMappingOnce;
+#if TARGET_OS_IPHONE
     dispatch_once(&selectorMappingOnce, ^{
         selectorMapping = @{
             UIApplicationDidFinishLaunchingNotification :
@@ -129,6 +134,20 @@ static NSString *const kSEGAnonymousIdFilename = @"segment.anonymousId";
                 NSStringFromSelector(@selector(applicationDidBecomeActive))
         };
     });
+#else
+    dispatch_once(&selectorMappingOnce, ^{
+        selectorMapping = @{
+            NSApplicationDidFinishLaunchingNotification :
+                NSStringFromSelector(@selector(applicationDidFinishLaunching:)),
+            NSApplicationWillTerminateNotification :
+                NSStringFromSelector(@selector(applicationWillTerminate)),
+            NSApplicationWillResignActiveNotification :
+                NSStringFromSelector(@selector(applicationWillResignActive)),
+            NSApplicationDidBecomeActiveNotification :
+                NSStringFromSelector(@selector(applicationDidBecomeActive))
+            };
+    });
+#endif
     SEL selector = NSSelectorFromString(selectorMapping[notificationName]);
     if (selector) {
         [self callIntegrationsWithSelector:selector arguments:nil options:nil sync:true];

@@ -1,11 +1,13 @@
 #import <objc/runtime.h>
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#import "UIViewController+SEGScreen.h"
+#endif
 #import "SEGAnalyticsUtils.h"
 #import "SEGAnalytics.h"
 #import "SEGIntegrationFactory.h"
 #import "SEGIntegration.h"
 #import "SEGSegmentIntegrationFactory.h"
-#import "UIViewController+SEGScreen.h"
 #import "SEGStoreKitTracker.h"
 #import "SEGHTTPClient.h"
 #import "SEGStorage.h"

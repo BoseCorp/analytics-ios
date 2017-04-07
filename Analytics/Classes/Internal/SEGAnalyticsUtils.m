@@ -1,5 +1,7 @@
 #import "SEGAnalyticsUtils.h"
+#if TARGET_OS_IPHONE
 #import <AdSupport/ASIdentifierManager.h>
+#endif
 
 static BOOL kAnalyticsLoggerShowLogs = NO;
 

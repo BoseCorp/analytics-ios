@@ -1,6 +1,8 @@
 #include <sys/sysctl.h>
 
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#endif
 #import "SEGAnalytics.h"
 #import "SEGAnalyticsUtils.h"
 #import "SEGSegmentIntegration.h"

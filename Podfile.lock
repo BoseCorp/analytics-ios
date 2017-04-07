@@ -1,7 +1,7 @@
 PODS:
-  - Nimble (5.1.1)
+  - Nimble (6.1.0)
   - Nocilla (0.11.0)
-  - Quick (1.0.0)
+  - Quick (1.1.0)
   - SwiftTryCatch (0.0.1)
 
 DEPENDENCIES:
@@ -20,11 +20,11 @@ CHECKOUT OPTIONS:
     :git: https://github.com/segmentio/SwiftTryCatch.git
 
 SPEC CHECKSUMS:
-  Nimble: 415e3aa3267e7bc2c96b05fa814ddea7bb686a29
+  Nimble: c53e6903fee94041b90ded74f135820437d8bf59
   Nocilla: 7af7a386071150cc8aa5da4da97d060f049dd61c
-  Quick: 8024e4a47e6cc03a9d5245ef0948264fc6d27cff
+  Quick: dafc587e21eed9f4cab3249b9f9015b0b7a7f71d
   SwiftTryCatch: fb6d2b34abe48efd69578dac919293a44f95b481
 
 PODFILE CHECKSUM: e7aa6926a6e0b35e28a27b2d03de5957d7a8f09a
 
-COCOAPODS: 1.1.0
+COCOAPODS: 1.2.0
