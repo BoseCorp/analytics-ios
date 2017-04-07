@@ -94,7 +94,12 @@ static NSString *const kSEGAnonymousIdFilename = @"segment.anonymousId";
         NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 
         // Update settings on foreground
-        [nc addObserver:self selector:@selector(onAppForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
+#if TARET_OS_IPHONE
+        NSString *key = UIApplicationWillEnterForegroundNotification;
+#else
+        NSString *key = NSApplicationWillUnhideNotification;
+#endif
+        [nc addObserver:self selector:@selector(onAppForeground:) name:key object:nil];
     }
     return self;
 }

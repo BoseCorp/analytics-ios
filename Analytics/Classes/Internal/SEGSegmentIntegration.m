@@ -2,6 +2,8 @@
 
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#else
+#import <AppKit/AppKit.h>
 #endif
 #import "SEGAnalytics.h"
 #import "SEGAnalyticsUtils.h"
@@ -51,13 +53,19 @@ static BOOL GetAdTrackingEnabled()
     return result;
 }
 
+#if TARGET_OS_IPHONE
+typedef UIBackgroundTaskIdentifier SEGBackgroundTaskIdentifier;
+#else
+typedef id SEGBackgroundTaskIdentifier;
+#endif
+
 
 @interface SEGSegmentIntegration ()
 
 @property (nonatomic, strong) NSMutableArray *queue;
 @property (nonatomic, strong) NSDictionary *cachedStaticContext;
 @property (nonatomic, strong) NSURLSessionUploadTask *batchRequest;
-@property (nonatomic, assign) UIBackgroundTaskIdentifier flushTaskID;
+@property (nonatomic, assign) SEGBackgroundTaskIdentifier flushTaskID;
 @property (nonatomic, strong) SEGReachability *reachability;
 @property (nonatomic, strong) NSTimer *flushTimer;
 @property (nonatomic, strong) dispatch_queue_t serialQueue;
@@ -89,7 +97,9 @@ static BOOL GetAdTrackingEnabled()
         [self.reachability startNotifier];
         self.cachedStaticContext = [self staticContext];
         self.serialQueue = seg_dispatch_queue_create_specific("io.segment.analytics.segmentio", DISPATCH_QUEUE_SERIAL);
+#if TARGET_OS_IPHONE
         self.flushTaskID = UIBackgroundTaskInvalid;
+#endif
 
 #if !TARGET_OS_TV
         // Check for previous queue/track data in NSUserDefaults and remove if present
@@ -154,12 +164,14 @@ static CTTelephonyNetworkInfo *_telephonyNetworkInfo;
         };
     }
 
-    UIDevice *device = [UIDevice currentDevice];
-
     dict[@"device"] = ({
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
         dict[@"manufacturer"] = @"Apple";
         dict[@"model"] = GetDeviceModel();
+
+#if TARGET_OS_IPHONE
+        UIDevice *device = [UIDevice currentDevice];
+
         dict[@"id"] = [[device identifierForVendor] UUIDString];
         if (NSClassFromString(SEGAdvertisingClassIdentifier)) {
             dict[@"adTrackingEnabled"] = @(GetAdTrackingEnabled());
@@ -168,15 +180,26 @@ static CTTelephonyNetworkInfo *_telephonyNetworkInfo;
             NSString *idfa = SEGIDFA();
             if (idfa.length) dict[@"advertisingId"] = idfa;
         }
+#endif
         dict;
     });
 
+#if TARGET_OS_IPHONE
+    UIDevice *device = [UIDevice currentDevice];
     dict[@"os"] = @{
         @"name" : device.systemName,
         @"version" : device.systemVersion
     };
+#else
+    NSDictionary *info = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+    dict[@"os"] = @{
+                    @"name": info[@"ProductName"],
+                    @"version": info[@"ProductVersion"]
+                    };
+#endif
 
-#if TARGET_OS_IOS
+
+#if TARGET_OS_IPHONE
     static dispatch_once_t networkInfoOnceToken;
     dispatch_once(&networkInfoOnceToken, ^{
         _telephonyNetworkInfo = [[CTTelephonyNetworkInfo alloc] init];
@@ -187,7 +210,11 @@ static CTTelephonyNetworkInfo *_telephonyNetworkInfo;
         dict[@"network"] = @{ @"carrier" : carrier.carrierName };
 #endif
 
+#if TARGET_OS_IPHONE
     CGSize screenSize = [UIScreen mainScreen].bounds.size;
+#else
+    CGSize screenSize = [NSScreen mainScreen].frame.size;
+#endif
     dict[@"screen"] = @{
         @"width" : @(screenSize.width),
         @"height" : @(screenSize.height)
@@ -263,19 +290,23 @@ static CTTelephonyNetworkInfo *_telephonyNetworkInfo;
 {
     [self endBackgroundTask];
 
+#if TARGET_OS_IPHONE
     self.flushTaskID = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         [self endBackgroundTask];
     }];
+#endif
 }
 
 - (void)endBackgroundTask
 {
+#if TARGET_OS_IPHONE
     [self dispatchBackgroundAndWait:^{
         if (self.flushTaskID != UIBackgroundTaskInvalid) {
             [[UIApplication sharedApplication] endBackgroundTask:self.flushTaskID];
             self.flushTaskID = UIBackgroundTaskInvalid;
         }
     }];
+#endif
 }
 
 - (NSString *)description

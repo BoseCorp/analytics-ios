@@ -2,6 +2,8 @@
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 #import "UIViewController+SEGScreen.h"
+#else
+#import <AppKit/AppKit.h>
 #endif
 #import "SEGAnalyticsUtils.h"
 #import "SEGAnalytics.h"
@@ -60,18 +62,30 @@ static SEGAnalytics *__sharedInstance = nil;
         NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 
         // Pass through for application state change events
-        for (NSString *name in @[ UIApplicationDidEnterBackgroundNotification,
-                                  UIApplicationDidFinishLaunchingNotification,
-                                  UIApplicationWillEnterForegroundNotification,
-                                  UIApplicationWillTerminateNotification,
-                                  UIApplicationWillResignActiveNotification,
-                                  UIApplicationDidBecomeActiveNotification ]) {
+#if TARGET_OS_IPHONE
+        NSArray *notifications = @[UIApplicationDidEnterBackgroundNotification,
+                                   UIApplicationDidFinishLaunchingNotification,
+                                   UIApplicationWillEnterForegroundNotification,
+                                   UIApplicationWillTerminateNotification,
+                                   UIApplicationWillResignActiveNotification,
+                                   UIApplicationDidBecomeActiveNotification];
+#else
+        NSArray *notifications = @[NSApplicationDidFinishLaunchingNotification,
+                                   NSApplicationDidHideNotification,
+                                   NSApplicationDidUnhideNotification,
+                                   NSApplicationWillTerminateNotification,
+                                   NSApplicationWillResignActiveNotification,
+                                   NSApplicationDidBecomeActiveNotification];
+#endif
+        for (NSString *name in notifications) {
             [nc addObserver:self selector:@selector(handleAppStateNotification:) name:name object:nil];
         }
 
+#if TARGET_OS_IPHONE
         if (configuration.recordScreenViews) {
             [UIViewController seg_swizzleViewDidAppear];
         }
+#endif
         if (configuration.trackInAppPurchases) {
             _storeKitTracker = [SEGStoreKitTracker trackTransactionsForAnalytics:self];
         }
@@ -80,7 +94,12 @@ static SEGAnalytics *__sharedInstance = nil;
 
 #if !TARGET_OS_TV
         if (configuration.trackPushNotifications && configuration.launchOptions) {
-            NSDictionary *remoteNotification = configuration.launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+#if !TARGET_OS_IOS
+            NSString *key = NSApplicationLaunchRemoteNotificationKey;
+#else
+            NSString *key = UIApplicationLaunchOptionsRemoteNotificationKey;
+#endif
+            NSDictionary *remoteNotification = configuration.launchOptions[key];
             if (remoteNotification) {
                 [self trackPushNotification:remoteNotification fromLaunch:YES];
             }
