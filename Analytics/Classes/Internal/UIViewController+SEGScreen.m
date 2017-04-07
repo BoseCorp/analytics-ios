@@ -1,3 +1,5 @@
+#if TARGET_OS_IPHONE
+
 #import "UIViewController+SEGScreen.h"
 #import <objc/runtime.h>
 #import "SEGAnalytics.h"
@@ -80,3 +82,5 @@
 }
 
 @end
+
+#endif

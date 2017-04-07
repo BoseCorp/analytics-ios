@@ -1,3 +1,5 @@
+#if TARGET_OS_IPHONE
+
 #import <UIKit/UIKit.h>
 
 
@@ -6,3 +8,5 @@
 + (void)seg_swizzleViewDidAppear;
 
 @end
+
+#endif
