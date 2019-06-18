@@ -178,6 +178,7 @@ NSDictionary *SEGCoerceDictionary(NSDictionary *dict)
 NSString *SEGIDFA()
 {
     NSString *idForAdvertiser = nil;
+#if !defined(SEG_NO_IDFA)
     Class identifierManager = NSClassFromString(@"ASIdentifierManager");
     if (identifierManager) {
         SEL sharedManagerSelector = NSSelectorFromString(@"sharedManager");
@@ -193,6 +194,7 @@ NSString *SEGIDFA()
                 sharedManager, advertisingIdentifierSelector);
         idForAdvertiser = [uuid UUIDString];
     }
+#endif
     return idForAdvertiser;
 }
 
